@@ -12,6 +12,51 @@
 #include <ctime>         // For date/time
 #include <iomanip>       // For formatting output
 #include <algorithm>     // For remove/erase operations
+
+using namespace std;
+
+// ===================== SHA-256 Password Hashing =====================
+// Simplified hashing function (placeholder for real SHA-256)
+string sha256(const string& msg){
+    unsigned long hash=0;                // Simple hash accumulator
+    for(char c:msg) hash=(hash*101 + c)%1000000007; // Basic hashing mechanism
+    return to_string(hash);              // Return hash as string
+}
+
+// ===================== UTILITY FUNCTIONS =====================
+// Trim whitespace from both ends of a string
+string trim(const string &s){
+    size_t a=s.find_first_not_of(" \t\r\n");  
+    if(a==string::npos) return "";       
+    size_t b=s.find_last_not_of(" \t\r\n");
+    return s.substr(a,b-a+1);           
+}
+
+// Validate numeric amount
+bool is_valid_amount(const string& s){
+    if(s.empty()) return false;          
+    bool dot=false; size_t start=0;      
+    if(s[0]=='-') start=1;               
+    for(size_t i=start;i<s.size();i++){
+        if(s[i]=='.'){ if(dot) return false; dot=true; } 
+        else if(!isdigit(s[i])) return false;           
+    }
+    try{ stod(s); return true; } catch(...){ return false; } 
+}
+
+// Validate date format YYYY-MM-DD
+bool is_valid_date(const string& d){
+    if(d.size()!=10||d[4]!='-'||d[7]!='-') return false;    
+    for(int i=0;i<10;i++){ if(i==4||i==7) continue; if(!isdigit(d[i])) return false; }
+    int y=stoi(d.substr(0,4)), m=stoi(d.substr(5,2)), day=stoi(d.substr(8,2));
+    return y>=1900&&y<=2100&&m>=1&&m<=12&&day>=1&&day<=31;  
+}
+
+// Remove commas to keep CSV stable
+string sanitize(const string& s){
+    string r; for(char c:s) r+=(c!=','?c:' '); return trim(r); 
+}
+
 // ===================== FILE HANDLING & ENCRYPTION =====================
 // File names and encryption key
 const string TX_FILE="transactions.csv"; 
