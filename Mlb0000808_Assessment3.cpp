@@ -119,6 +119,64 @@ bool register_user(map<string,User>& users){
     cout<<"Registration success!\n"; 
     return true;
 }
+// ===================== TRANSACTION STRUCTURE =====================
+// Node structure for linked list
+struct Transaction{
+    string id,date,category,desc,type;  // Data fields
+    double amount;                      // Amount field
+    Transaction* next;                  // Pointer to next node
+    Transaction() : id(""), date(""), category(""), desc(""), amount(0.0), type(""), next(nullptr) {}
+    Transaction(string i,string d,string c,string ds,double a,string t)
+        : id(i), date(d), category(c), desc(ds), amount(a), type(t), next(nullptr) {}
+};
+
+// ===================== LINKED LIST =====================
+// Manage transaction nodes in a linked list
+class TransactionList{
+    Transaction* head;                  // Head pointer
+    size_t sz;                          // Track list size
+public:
+    TransactionList(): head(nullptr), sz(0) {}
+    ~TransactionList(){ while(head){ Transaction* t=head; head=head->next; delete t; } }
+    void push_front(Transaction* t){ t->next=head; head=t; sz++; }
+    bool remove_by_id(const string& id){
+        Transaction *cur=head, *prev=nullptr;
+        while(cur){
+            if(cur->id==id){
+                if(prev) prev->next=cur->next; else head=cur->next;
+                delete cur; sz--; return true;
+            }
+            prev=cur; cur=cur->next;
+        } return false;
+    }
+    Transaction* find_by_id(const string& id){
+        Transaction* cur=head; while(cur){ if(cur->id==id) return cur; cur=cur->next; } return nullptr;
+    }
+    Transaction* get_head(){ return head; }
+    size_t size() const { return sz; }
+};
+
+// ===================== HASH MAP =====================
+// Efficient searching using map
+class TransactionHashMap{
+    map<string,Transaction*> idMap;                     // Map ID → Transaction
+    map<string,vector<Transaction*>> categoryMap;       // Category indexing
+public:
+    void add(Transaction* t){ idMap[t->id]=t; categoryMap[t->category].push_back(t); }
+    void remove(const string& id){
+        auto it=idMap.find(id);
+        if(it!=idMap.end()){
+            Transaction* t=it->second;
+            auto& vec=categoryMap[t->category];
+            vec.erase(std::remove(vec.begin(),vec.end(),t),vec.end());
+            idMap.erase(it);
+        }
+    }
+    Transaction* find_by_id(const string& id){ return idMap.count(id)?idMap[id]:nullptr; }
+    vector<Transaction*> find_by_category(const string& cat){ return categoryMap.count(cat)?categoryMap[cat]:vector<Transaction*>(); }
+    void clear(){ idMap.clear(); categoryMap.clear(); }
+};
+
 
 // ===================== MAIN =====================
 // Program entry point
